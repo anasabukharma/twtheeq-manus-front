@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام التوثيق الوطني | National Authentication System - Self Service</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      /* Global font override strictly following user requirements */
+      * {
+        font-family: "Cairo",sans-serif!important;
+      }
+      
+      body {
+        background-color: #ffffff;
+        color: #333333;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      .text-nas-maroon {
+        color: #8a1538;
+      }
+      .bg-nas-maroon {
+        background-color: #8a1538;
+      }
+      .nas-well {
+        background-color: #f5f5f5;
+        border: 1px solid #dcdcdc;
+        border-radius: 4px;
+        box-shadow: 0 1px 1px rgba(0,0,0,.05);
+        max-width: 960px;
+        width: 100%;
+      }
+      .nas-well-header {
+        border-bottom: 1px solid #eeeeee;
+        padding: 15px 25px;
+        text-align: right;
+        background-color: #f5f5f5;
+      }
+      .nas-btn-blue {
+        background-color: #007fb1;
+        color: #fff !important;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 6px 20px;
+        border-radius: 4px;
+        border: 1px solid #007fb1;
+        transition: background 0.2s;
+        min-width: 80px;
+      }
+      .nas-btn-blue:hover {
+        background-color: #005a7d;
+      }
+      .nas-btn-white {
+        background-color: #fff;
+        color: #333 !important;
+        font-size: 14px;
+        font-weight: normal;
+        padding: 6px 20px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        min-width: 80px;
+      }
+      .nas-btn-white:hover {
+        background-color: #f5f5f5;
+      }
+      .nas-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+      }
+      .nas-input {
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13.5px;
+        outline: none;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+      }
+      .nas-input:focus {
+        border-color: #66afe9;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+      }
+      .nas-select {
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13.5px;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: left 10px center;
+        background-size: 1em;
+      }
+      .required-dot {
+        color: #8a1538;
+        font-weight: bold;
+        font-size: 18px;
+        margin-right: 4px;
+      }
+      .step-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 10;
+        background-color: #fff;
+        border: 1px solid #cccccc;
+        color: #666;
+      }
+      .step-circle.active {
+        background-color: #007fb1;
+        border-color: #007fb1;
+        color: #fff;
+      }
+      .step-line {
+        position: absolute;
+        top: 16px;
+        left: 40px;
+        right: 40px;
+        height: 1px;
+        background-color: #dddddd;
+        z-index: 0;
+      }
+      input[type="radio"] {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        background-color: #fff;
+        position: relative;
+        cursor: pointer;
+      }
+      input[type="radio"]:checked::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background-color: #333;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      html[dir="rtl"] .nas-select {
+        background-position: left 10px center;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

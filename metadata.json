@@ -1,0 +1,5 @@
+{
+  "name": "Qatar National Authentication System (NAS)",
+  "description": "A modern React implementation of the Qatar National Authentication System login page, featuring RTL support, responsive design, and government-standard UI aesthetics.",
+  "requestFramePermissions": []
+}

