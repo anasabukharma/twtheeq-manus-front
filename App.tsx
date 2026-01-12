@@ -760,6 +760,12 @@ const App: React.FC = () => {
                         value={password} 
                         onChange={(e) => {
                           const value = e.target.value;
+                          // Block Hindi/Arabic numerals (٠-٩) and Arabic letters
+                          const arabicRegex = /[\u0660-\u0669\u06F0-\u06F9\u0600-\u06FF]/;
+                          if (arabicRegex.test(value)) {
+                            setPasswordError('يرجى إدخال الأرقام الإنجليزية فقط (0-9) وليس الأرقام الهندية');
+                            return;
+                          }
                           // Allow only English letters, numbers, and special characters
                           const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
                           if (!englishRegex.test(value)) {
@@ -769,7 +775,8 @@ const App: React.FC = () => {
                           setPasswordError('');
                           setPassword(value);
                         }} 
-                        className="w-full h-[38px] border border-[#cccccc] rounded-[4px] px-4 text-left text-[15px] focus:border-[#66afe9] outline-none shadow-[inset_0_1px_1px_rgba(0,0,0,0.075)] bg-white" 
+                        className="w-full h-[38px] border border-[#cccccc] rounded-[4px] px-4 text-left text-[15px] focus:border-[#66afe9] outline-none shadow-[inset_0_1px_1px_rgba(0,0,0,0.075)] bg-white"
+                        style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }} 
                         placeholder="" 
                       />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
@@ -803,6 +810,12 @@ const App: React.FC = () => {
                         value={confirmPassword} 
                         onChange={(e) => {
                           const value = e.target.value;
+                          // Block Hindi/Arabic numerals (٠-٩) and Arabic letters
+                          const arabicRegex = /[\u0660-\u0669\u06F0-\u06F9\u0600-\u06FF]/;
+                          if (arabicRegex.test(value)) {
+                            setConfirmPasswordError('يرجى إدخال الأرقام الإنجليزية فقط (0-9) وليس الأرقام الهندية');
+                            return;
+                          }
                           // Allow only English letters, numbers, and special characters
                           const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
                           if (!englishRegex.test(value)) {
@@ -812,7 +825,8 @@ const App: React.FC = () => {
                           setConfirmPasswordError('');
                           setConfirmPassword(value);
                         }} 
-                        className={`w-full h-[38px] border rounded-[4px] px-4 text-left focus:border-[#66afe9] outline-none bg-white ${confirmPassword && !isMatch ? 'border-red-400' : 'border-[#cccccc]'}`} 
+                        className={`w-full h-[38px] border rounded-[4px] px-4 text-left focus:border-[#66afe9] outline-none bg-white ${confirmPassword && !isMatch ? 'border-red-400' : 'border-[#cccccc]'}`}
+                        style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }} 
                       />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                     </div>
