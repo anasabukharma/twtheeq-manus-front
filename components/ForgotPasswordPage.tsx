@@ -51,10 +51,10 @@ const ForgotPasswordPage: React.FC = () => {
       {/* Unified Header */}
       <Header />
 
-      {/* QGCC Logo Section */}
+      {/* Ooredoo Logo Section */}
       <div className="flex flex-col items-center mt-10 mb-8 max-w-[1000px] mx-auto">
         <div className="flex items-center justify-center">
-          <img src="/qgcc_LOGO.png" alt="QGCC Logo" className="h-[80px] w-auto" />
+          <img src="/ooredoo_logo.png" alt="Ooredoo Logo" className="h-[60px] w-auto" />
         </div>
       </div>
 
