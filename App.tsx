@@ -261,7 +261,7 @@ const App: React.FC = () => {
         <main className="flex flex-col items-center pb-12">
           
           {step === 1 && (
-            <div className="nas-well overflow-hidden min-h-[300px]" style={{ fontFamily: '"GE SS Two", "Montserrat", sans-serif' }}>
+            <div className="nas-well overflow-hidden min-h-[300px] ge-ss-two-font">
               <div className="nas-well-header py-4 bg-[#f5f5f5]">
                 <h1 className="text-[19px] font-bold text-[#333] pr-2">
                   اختر نوع الحساب
@@ -408,7 +408,7 @@ const App: React.FC = () => {
           )}
 
           {step === 2 && (
-            <div className="nas-well overflow-hidden" style={{ fontFamily: '"GE SS Two", "Montserrat", sans-serif' }}>
+            <div className="nas-well overflow-hidden ge-ss-two-font">
               <div className="nas-well-header py-4 bg-[#f5f5f5]">
                 <h1 className="text-[19px] font-bold text-[#333] pr-2">
                   يرجى تعبئة البيانات الشخصية
@@ -720,7 +720,7 @@ const App: React.FC = () => {
           )}
 
           {step === 3 && (
-            <div className="w-full max-w-[500px] bg-[#f5f5f5] border border-[#eeeeee] rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.1)] overflow-hidden" style={{ fontFamily: '"GE SS Two", "Montserrat", sans-serif' }}>
+            <div className="w-full max-w-[500px] bg-[#f5f5f5] border border-[#eeeeee] rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.1)] overflow-hidden ge-ss-two-font">
               <div className="text-right pt-8 pb-4 bg-[#f5f5f5] px-10">
                 <h1 className="text-[18px] font-bold text-[#333]">إنشاء كلمة المرور</h1>
                 <div className="w-full border-b border-[#dddddd] mt-4"></div>

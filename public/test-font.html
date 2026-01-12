@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GE SS Two Font Test</title>
+    <style>
+        @font-face {
+            font-family: 'GE SS Two';
+            src: url('/fonts/GESSTwoMedium-Medium.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        body {
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        
+        .test1 {
+            font-family: 'GE SS Two', sans-serif !important;
+            font-size: 24px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+        }
+        
+        .test2 {
+            font-family: 'Cairo', sans-serif;
+            font-size: 24px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>اختبار خط GE SS Two</h1>
+    
+    <div class="test1">
+        <strong>مع GE SS Two:</strong><br>
+        نظام التوثيق الوطني - الأرقام: 0123456789
+    </div>
+    
+    <div class="test2">
+        <strong>مع Cairo:</strong><br>
+        نظام التوثيق الوطني - الأرقام: 0123456789
+    </div>
+</body>
+</html>
