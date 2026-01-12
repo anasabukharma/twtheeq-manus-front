@@ -7,7 +7,7 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ onStart, onLogin }) => {
   return (
-    <div className="w-full bg-white font-sans min-h-screen flex flex-col" dir="rtl">
+    <div className="w-full bg-white min-h-screen flex flex-col" style={{ fontFamily: '"GE SS Two", "Montserrat", sans-serif' }} dir="rtl">
       {/* Home Header - Matching Refined Header */}
       <header className="bg-white py-4 border-b border-gray-100 shadow-sm">
         <div className="container mx-auto px-4 md:px-10 flex justify-between items-center max-w-[1400px]" dir="rtl">
