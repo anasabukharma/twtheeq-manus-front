@@ -30,9 +30,11 @@
         font-family: "GE SS Two", "Montserrat", sans-serif !important;
       }
       
-      /* Exclude email fields from GE SS Two */
-      .ge-ss-two-font input[type="email"] {
+      /* Exclude email and password fields from GE SS Two */
+      .ge-ss-two-font input[type="email"],
+      .ge-ss-two-font input[type="password"] {
         font-family: Arial, sans-serif !important;
+        direction: ltr;
       }
       
       /* Global font override strictly following user requirements */
