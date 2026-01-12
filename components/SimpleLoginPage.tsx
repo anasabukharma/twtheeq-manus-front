@@ -134,13 +134,13 @@ const SimpleLoginPage: React.FC = () => {
                       hasSymbol: /[%$#@&/\-_]/.test(value)
                     });
                   }}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-sm text-left text-[15px] focus:outline-none focus:border-[#8a1538] transition-colors pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-sm text-left text-[15px] focus:outline-none focus:border-[#8a1538] transition-colors pl-12"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -157,16 +157,6 @@ const SimpleLoginPage: React.FC = () => {
                   {!passwordRequirements.hasSymbol && <p className="text-[#d9534f]">✗ رمز واحد على الأقل (% $ # @ & / - _)</p>}
                 </div>
               )}
-            </div>
-
-            {/* Forgot Password Link */}
-            <div className="text-center">
-              <a 
-                href="/?page=forgot-password" 
-                className="text-[14px] font-black text-[#8a1538] hover:underline"
-              >
-                هل نسيت كلمة المرور؟
-              </a>
             </div>
 
             {/* Submit Button */}
