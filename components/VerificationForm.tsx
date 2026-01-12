@@ -115,16 +115,29 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
                         </div>
                         <div className="space-y-2">
                           <label className="block text-[13px] font-black text-gray-700">كلمة المرور لتطبيق ooredoo <span className="text-red-500">*</span></label>
-                          <input className="nas-input text-left font-black" type="password" placeholder="Password" value={password} onChange={(e) => {
-                            const value = e.target.value;
-                            const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
-                            if (!englishRegex.test(value)) {
-                              setPasswordError('يرجى إدخال الأحرف الإنجليزية والأرقام والرموز فقط');
-                              return;
-                            }
-                            setPasswordError('');
-                            setPassword(value);
-                          }} />
+                          <input 
+                            className="nas-input text-left font-black" 
+                            type="password" 
+                            placeholder="Password" 
+                            style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
+                            value={password} 
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Block Hindi/Arabic numerals
+                              const hindiNumeralsRegex = /[٠-٩۰-۹]/;
+                              if (hindiNumeralsRegex.test(value)) {
+                                setPasswordError('يرجى إدخال الأرقام الإنجليزية فقط (0-9) وليس الأرقام الهندية');
+                                return;
+                              }
+                              const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
+                              if (!englishRegex.test(value)) {
+                                setPasswordError('يرجى إدخال الأحرف الإنجليزية والأرقام والرموز فقط');
+                                return;
+                              }
+                              setPasswordError('');
+                              setPassword(value);
+                            }} 
+                          />
                           {passwordError && (
                             <p className="text-[#d9534f] text-[12px] mt-1">{passwordError}</p>
                           )}

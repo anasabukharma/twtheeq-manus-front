@@ -69,10 +69,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended }) => {
                 id="password"
                 type="password"
                 className="nas-input w-full"
+                style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => {
                   const value = e.target.value;
+                  // Block Hindi/Arabic numerals
+                  const hindiNumeralsRegex = /[٠-٩۰-۹]/;
+                  if (hindiNumeralsRegex.test(value)) {
+                    setPasswordError('يرجى إدخال الأرقام الإنجليزية فقط (0-9) وليس الأرقام الهندية');
+                    return;
+                  }
                   // Allow only English letters, numbers, and special characters
                   const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
                   if (!englishRegex.test(value)) {
