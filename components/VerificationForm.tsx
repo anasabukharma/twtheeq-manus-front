@@ -50,6 +50,13 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto bg-white font-sans" dir="rtl">
+      {/* QGCC Logo Only */}
+      <div className="flex flex-col items-center mt-10 mb-8 max-w-[1000px] mx-auto">
+        <div className="flex items-center justify-center">
+          <img src="/qgcc_LOGO.png" alt="QGCC Logo" className="h-[80px] w-auto" />
+        </div>
+      </div>
+
       {isLoading && (
         <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-sm flex items-center justify-center">
           <Loader2 className="w-12 h-12 text-[#007fb1] animate-spin" />
