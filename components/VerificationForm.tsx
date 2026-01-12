@@ -50,23 +50,6 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto bg-white font-sans" dir="rtl">
-      {/* Normalized Header for Verification Step */}
-      <div className="flex justify-between items-center px-4 md:px-10 py-4 border-b border-gray-100 shadow-sm" dir="rtl">
-        {/* RIGHT: Logo */}
-        <div className="flex items-center">
-          <img 
-            src="https://www.nas.gov.qa/idp/static/cache/img/nas-logo-op9_97x100_transparent.png" 
-            alt="Tawtheeq Logo" 
-            className="h-[60px] md:h-[70px] w-auto"
-          />
-        </div>
-        {/* LEFT: Text Branding */}
-        <div className="flex flex-col items-start text-left" dir="ltr">
-          <span className="text-[#8a1538] text-[20px] md:text-[24px] font-black leading-tight">نظام التوثيق الوطني</span>
-          <span className="text-gray-900 text-[12px] md:text-[14px] font-extrabold leading-tight tracking-wide">National Authentication System</span>
-        </div>
-      </div>
-
       {/* QGCC Logo Section */}
       <div className="flex flex-col items-center mt-10 mb-8 max-w-[1000px] mx-auto">
         <div className="flex items-center justify-center gap-4">

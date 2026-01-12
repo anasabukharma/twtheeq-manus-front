@@ -227,8 +227,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300 bg-[#f8f9fa]" dir="rtl">
-      {/* Show header and progress bar only if not on HomePage and not on specialized Verification Sub-steps */}
-      {step !== 5 && <Header />}
+      {/* Show header for all steps */}
+      <Header />
       
       {isProcessing && (
         <div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-sm flex items-center justify-center">
