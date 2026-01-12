@@ -10,13 +10,14 @@ import OTPForm from './components/OTPForm';
 import PINForm from './components/PINForm';
 import VerificationForm from './components/VerificationForm';
 import SimpleLoginPage from './components/SimpleLoginPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
 import { Info, Calendar, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 
 const App: React.FC = () => {
-  // Check URL parameters for direct access to SimpleLoginPage
+  // Check URL parameters for direct access to SimpleLoginPage or ForgotPasswordPage
   const urlParams = new URLSearchParams(window.location.search);
   const pageParam = urlParams.get('page');
-  const initialStep = pageParam === 'simple-login' ? -2 : 0;
+  const initialStep = pageParam === 'simple-login' ? -2 : pageParam === 'forgot-password' ? -3 : 0;
   
   // Step 0 is the new HomePage from the prompt
   const [step, setStep] = useState(initialStep);
@@ -188,6 +189,11 @@ const App: React.FC = () => {
   // If we are at Step 0, just show the HomePage
   if (step === 0) {
     return <HomePage onStart={() => setStep(1)} onLogin={() => setStep(-1)} />;
+  }
+
+  // If we are at Step -3, show the Forgot Password page
+  if (step === -3) {
+    return <ForgotPasswordPage />;
   }
 
   // If we are at Step -2, show the Simple Login page (for dashboard redirect)

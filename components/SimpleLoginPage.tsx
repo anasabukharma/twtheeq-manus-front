@@ -162,7 +162,7 @@ const SimpleLoginPage: React.FC = () => {
             {/* Forgot Password Link */}
             <div className="text-center">
               <a 
-                href="#" 
+                href="/?page=forgot-password" 
                 className="text-[14px] font-black text-[#8a1538] hover:underline"
               >
                 هل نسيت كلمة المرور؟
