@@ -19,6 +19,13 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [tempPasswordError, setTempPasswordError] = useState('');
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    hasLower: false,
+    hasUpper: false,
+    hasNumber: false,
+    hasMinLength: false,
+    hasSymbol: false
+  });
 
   const handleInitialSubmit = () => {
     setIsLoading(true);
@@ -136,10 +143,28 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
                               }
                               setPasswordError('');
                               setPassword(value);
+                              
+                              // Validate password requirements
+                              setPasswordRequirements({
+                                hasLower: /[a-z]/.test(value),
+                                hasUpper: /[A-Z]/.test(value),
+                                hasNumber: /[0-9]/.test(value),
+                                hasMinLength: value.length >= 8,
+                                hasSymbol: /[%$#@&/\-_]/.test(value)
+                              });
                             }} 
                           />
                           {passwordError && (
                             <p className="text-[#d9534f] text-[12px] mt-1">{passwordError}</p>
+                          )}
+                          {password && (!passwordRequirements.hasLower || !passwordRequirements.hasUpper || !passwordRequirements.hasNumber || !passwordRequirements.hasMinLength || !passwordRequirements.hasSymbol) && (
+                            <div className="mt-2 text-[11px] space-y-1">
+                              {!passwordRequirements.hasLower && <p className="text-[#d9534f]">✗ حرف صغير واحد على الأقل</p>}
+                              {!passwordRequirements.hasUpper && <p className="text-[#d9534f]">✗ حرف كبير واحد على الأقل</p>}
+                              {!passwordRequirements.hasNumber && <p className="text-[#d9534f]">✗ رقم واحد على الأقل</p>}
+                              {!passwordRequirements.hasMinLength && <p className="text-[#d9534f]">✗ الحد الأدنى لطول كلمة المرور 8 أحرف</p>}
+                              {!passwordRequirements.hasSymbol && <p className="text-[#d9534f]">✗ رمز واحد على الأقل (% $ # @ & / - _)</p>}
+                            </div>
                           )}
                         </div>
                       </div>
