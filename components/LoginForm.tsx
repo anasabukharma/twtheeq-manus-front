@@ -11,6 +11,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +71,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended }) => {
                 className="nas-input w-full"
                 placeholder="كلمة المرور"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow only English letters, numbers, and special characters
+                  const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
+                  if (!englishRegex.test(value)) {
+                    setPasswordError('يرجى إدخال الأحرف الإنجليزية والأرقام والرموز فقط');
+                    return;
+                  }
+                  setPasswordError('');
+                  setPassword(value);
+                }}
                 disabled={isLoading}
               />
+              {passwordError && (
+                <p className="text-[#d9534f] text-[12px] mt-1">{passwordError}</p>
+              )}
             </div>
           </div>
 

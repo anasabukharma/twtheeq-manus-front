@@ -69,7 +69,7 @@ const HomePage: React.FC<HomePageProps> = ({ onStart, onLogin }) => {
 
       <footer className="py-6 border-t border-gray-100">
         <div className="text-center text-gray-800 text-[14px] font-black">
-          © 2025 حكومة قطر
+          © 2026 حكومة قطر
         </div>
       </footer>
     </div>
