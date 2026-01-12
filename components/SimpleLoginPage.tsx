@@ -58,9 +58,9 @@ const SimpleLoginPage: React.FC = () => {
                   <span className="text-3xl text-red-600">⚠</span>
                 </div>
               </div>
-              <h3 className="text-[20px] font-black text-gray-800 mb-4">خطأ في تسجيل الدخول</h3>
+              <h3 className="text-[20px] font-black text-gray-800 mb-4">خطأ في تسجيل الدخول تطبيق Ooredoo</h3>
               <p className="text-[15px] text-gray-600 leading-relaxed mb-6">
-                البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى التأكد من البيانات وإعادة المحاولة.
+                البريد الإلكتروني أو كلمة المرور خطأ. يرجى التأكد من صحة البيانات المدخلة وإعادة المحاولة.
               </p>
               <button
                 onClick={() => setShowModal(false)}
