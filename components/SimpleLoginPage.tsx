@@ -60,7 +60,7 @@ const SimpleLoginPage: React.FC = () => {
               </div>
               <h3 className="text-[20px] font-black text-gray-800 mb-4">خطأ في تسجيل الدخول</h3>
               <p className="text-[15px] text-gray-600 leading-relaxed mb-6">
-                الإيميل أو كلمة المرور خطأ. يرجى إعادة المحاولة بشكل صحيح.
+                البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى التأكد من البيانات وإعادة المحاولة.
               </p>
               <button
                 onClick={() => setShowModal(false)}
