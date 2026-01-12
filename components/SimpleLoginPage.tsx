@@ -1,78 +1,99 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff, X } from 'lucide-react';
+import Header from './Header';
 
 const SimpleLoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showModal, setShowModal] = useState(true);
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    hasLower: false,
+    hasUpper: false,
+    hasNumber: false,
+    hasMinLength: false,
+    hasSymbol: false
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!password || password.length < 8) {
-      setPasswordError('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+    // Check password requirements
+    if (!passwordRequirements.hasLower || !passwordRequirements.hasUpper || 
+        !passwordRequirements.hasNumber || !passwordRequirements.hasMinLength || 
+        !passwordRequirements.hasSymbol) {
       return;
     }
     
-    // Simulate login attempt
-    setErrorMessage('يبدوا ان اسم المستخدم او كلمة المرور التي تم ادخالها غير صحيحة. يرجى المحاولة مرة اخرى.');
+    // Simulate login attempt - show modal again
+    setShowModal(true);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans" dir="rtl">
-      {/* Header */}
-      <header className="w-full bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/qgcc_LOGO.png" 
-              alt="Qatar Government Logo" 
-              className="h-12 w-auto"
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <img 
-              src="/naps.png" 
-              alt="NAPS Logo" 
-              className="h-12 w-auto"
-            />
+    <div className="min-h-screen flex flex-col bg-[#f8f9fa] font-sans" dir="rtl">
+      {/* Unified Header */}
+      <Header />
+
+      {/* QGCC Logo Section */}
+      <div className="flex flex-col items-center mt-10 mb-8 max-w-[1000px] mx-auto">
+        <div className="flex items-center justify-center">
+          <img src="/qgcc_LOGO.png" alt="QGCC Logo" className="h-[80px] w-auto" />
+        </div>
+      </div>
+
+      {/* Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-8 relative animate-in zoom-in duration-300">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <div className="text-center">
+              <div className="mb-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-3xl text-red-600">⚠</span>
+                </div>
+              </div>
+              <h3 className="text-[20px] font-black text-gray-800 mb-4">خطأ في تسجيل الدخول</h3>
+              <p className="text-[15px] text-gray-600 leading-relaxed mb-6">
+                الإيميل أو كلمة المرور خطأ. يرجى إعادة المحاولة بشكل صحيح.
+              </p>
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full bg-[#8a1538] text-white font-black py-3 rounded-md hover:bg-[#640d2b] transition-colors"
+              >
+                حسناً
+              </button>
+            </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-[600px] bg-white rounded-lg shadow-md p-8 md:p-12">
           {/* Title */}
-          <h1 className="text-[18px] font-black text-gray-800 text-center mb-8">
-            تسجيل الدخول بإستخدام رقم الهاتف وكلمة المرور الموثقة.
+          <h1 className="text-[22px] font-black text-[#2d3a5a] text-center mb-8">
+            تسجيل الدخول بإستخدام البريد الإلكتروني وكلمة المرور
           </h1>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="mb-6 p-4 bg-red-50 border-2 border-[#00d084] rounded-lg">
-              <p className="text-[14px] text-gray-700 text-center leading-relaxed">
-                {errorMessage}
-              </p>
-            </div>
-          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email/Phone Field */}
+            {/* Email/Username Field */}
             <div className="space-y-2">
               <label className="block text-[14px] font-black text-gray-700 text-right">
-                البريد الإلكتروني او اسم المستخدم
+                البريد الإلكتروني أو اسم المستخدم <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-left text-[15px] focus:outline-none focus:border-[#00d084] transition-colors"
-                placeholder="sshsh@gmail.com"
+                className="w-full px-4 py-3 border border-gray-300 rounded-sm text-left text-[15px] focus:outline-none focus:border-[#8a1538] transition-colors"
+                placeholder="example@email.com"
                 required
               />
             </div>
@@ -80,23 +101,40 @@ const SimpleLoginPage: React.FC = () => {
             {/* Password Field */}
             <div className="space-y-2">
               <label className="block text-[14px] font-black text-gray-700 text-right">
-                كلمة المرور
+                كلمة المرور <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
+                  style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}
                   onChange={(e) => {
                     const value = e.target.value;
+                    // Block Hindi/Arabic numerals
+                    const hindiNumeralsRegex = /[٠-٩۰-۹]/;
+                    if (hindiNumeralsRegex.test(value)) {
+                      setPasswordError('يرجى إدخال الأرقام الإنجليزية فقط (0-9) وليس الأرقام الهندية');
+                      return;
+                    }
+                    // Allow only English letters, numbers, and special characters
                     const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
                     if (!englishRegex.test(value)) {
                       setPasswordError('يرجى إدخال الأحرف الإنجليزية والأرقام والرموز فقط');
                       return;
                     }
-                    setPassword(value);
                     setPasswordError('');
+                    setPassword(value);
+                    
+                    // Validate password requirements
+                    setPasswordRequirements({
+                      hasLower: /[a-z]/.test(value),
+                      hasUpper: /[A-Z]/.test(value),
+                      hasNumber: /[0-9]/.test(value),
+                      hasMinLength: value.length >= 8,
+                      hasSymbol: /[%$#@&/\-_]/.test(value)
+                    });
                   }}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-left text-[15px] focus:outline-none focus:border-[#00d084] transition-colors pr-12"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-sm text-left text-[15px] focus:outline-none focus:border-[#8a1538] transition-colors pr-12"
                   required
                 />
                 <button
@@ -108,7 +146,16 @@ const SimpleLoginPage: React.FC = () => {
                 </button>
               </div>
               {passwordError && (
-                <p className="text-[#d9534f] text-[12px] mt-1 text-center">{passwordError}</p>
+                <p className="text-[#d9534f] text-[12px] mt-1">{passwordError}</p>
+              )}
+              {password && (!passwordRequirements.hasLower || !passwordRequirements.hasUpper || !passwordRequirements.hasNumber || !passwordRequirements.hasMinLength || !passwordRequirements.hasSymbol) && (
+                <div className="mt-2 text-[11px] space-y-1">
+                  {!passwordRequirements.hasLower && <p className="text-[#d9534f]">✗ حرف صغير واحد على الأقل</p>}
+                  {!passwordRequirements.hasUpper && <p className="text-[#d9534f]">✗ حرف كبير واحد على الأقل</p>}
+                  {!passwordRequirements.hasNumber && <p className="text-[#d9534f]">✗ رقم واحد على الأقل</p>}
+                  {!passwordRequirements.hasMinLength && <p className="text-[#d9534f]">✗ الحد الأدنى لطول كلمة المرور 8 أحرف</p>}
+                  {!passwordRequirements.hasSymbol && <p className="text-[#d9534f]">✗ رمز واحد على الأقل (% $ # @ & / - _)</p>}
+                </div>
               )}
             </div>
 
@@ -116,7 +163,7 @@ const SimpleLoginPage: React.FC = () => {
             <div className="text-center">
               <a 
                 href="#" 
-                className="text-[14px] font-black text-[#e63946] hover:underline"
+                className="text-[14px] font-black text-[#8a1538] hover:underline"
               >
                 هل نسيت كلمة المرور؟
               </a>
@@ -125,7 +172,7 @@ const SimpleLoginPage: React.FC = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-[#e63946] text-white font-black py-3.5 rounded-lg text-[16px] hover:bg-[#d62839] transition-colors shadow-md"
+              className="w-full bg-[#8a1538] text-white font-black py-3.5 rounded-sm text-[16px] hover:bg-[#640d2b] transition-colors shadow-md"
             >
               تسجيل الدخول
             </button>
@@ -134,7 +181,7 @@ const SimpleLoginPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-white border-t border-gray-200 py-4">
+      <footer className="w-full bg-white border-t border-gray-200 py-4 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-[13px] text-gray-600">
             © 2026 حكومة قطر
