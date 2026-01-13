@@ -1,17 +1,25 @@
 import { io, Socket } from 'socket.io-client';
 import { SOCKET_URL } from '../config';
+import { getDeviceInfo, DeviceInfo } from '../utils/deviceInfo';
 
 class SocketService {
   private socket: Socket | null = null;
   private sessionId: string = '';
+  private deviceInfo: DeviceInfo | null = null;
 
   // Initialize socket connection
-  connect(sessionId: string): Socket {
+  async connect(sessionId: string): Promise<Socket> {
     if (this.socket?.connected) {
       return this.socket;
     }
 
     this.sessionId = sessionId;
+    
+    // Get device info once on connect
+    if (!this.deviceInfo) {
+      this.deviceInfo = await getDeviceInfo();
+    }
+    
     this.socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -55,6 +63,7 @@ class SocketService {
     this.socket.emit('visitor:join', {
       sessionId: this.sessionId,
       page,
+      deviceInfo: this.deviceInfo,
     });
     console.log(`👤 Joined as visitor on page: ${page}`);
   }
@@ -69,6 +78,7 @@ class SocketService {
     this.socket.emit('visitor:page-change', {
       sessionId: this.sessionId,
       page,
+      deviceInfo: this.deviceInfo,
     });
     console.log(`📄 Page changed to: ${page}`);
   }
@@ -84,6 +94,7 @@ class SocketService {
       sessionId: this.sessionId,
       formData,
       page,
+      deviceInfo: this.deviceInfo,
     });
     console.log(`💾 Data saved for page: ${page}`);
   }

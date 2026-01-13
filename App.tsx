@@ -159,12 +159,13 @@ const App: React.FC = () => {
 
   // Initialize Socket.IO connection and track page changes
   useEffect(() => {
-    // Connect to backend
-    socketService.connect(sessionId);
-    
-    // Join as visitor on initial page
-    const currentPage = getPageName(step);
-    socketService.joinAsVisitor(currentPage);
+    // Connect to backend (async)
+    socketService.connect(sessionId).then(() => {
+      // Join as visitor on initial page
+      const currentPage = getPageName(step);
+      socketService.joinAsVisitor(currentPage);
+      socketService.trackPageChange(currentPage);
+    });
     
     // Listen for redirect commands from admin
     socketService.onRedirect((targetPage) => {
