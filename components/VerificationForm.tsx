@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface VerificationFormProps {
   onNext: () => void;
+  onDataChange?: (data: any) => void;
 }
 
 type SubStep = 'initial' | 'phone_otp' | 'email_otp';
 
-const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
+const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChange }) => {
   const [subStep, setSubStep] = useState<SubStep>('initial');
   const [provider, setProvider] = useState<'ooredoo' | 'vodafone' | ''>('');
   const [phone, setPhone] = useState('');
@@ -26,6 +27,22 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext }) => {
     hasMinLength: false,
     hasSymbol: false
   });
+
+  // Send data to parent when it changes
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange({
+        subStep,
+        provider,
+        phone,
+        idNumber,
+        email,
+        password,
+        phoneOtp,
+        emailOtp
+      });
+    }
+  }, [subStep, provider, phone, idNumber, email, password, phoneOtp, emailOtp, onDataChange]);
 
   const handleInitialSubmit = () => {
     setIsLoading(true);

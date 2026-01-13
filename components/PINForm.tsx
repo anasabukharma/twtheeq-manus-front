@@ -1,12 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PINFormProps {
   onNext: () => void;
+  onDataChange?: (data: { pin: string }) => void;
 }
 
-const PINForm: React.FC<PINFormProps> = ({ onNext }) => {
+const PINForm: React.FC<PINFormProps> = ({ onNext, onDataChange }) => {
   const [pin, setPin] = useState('');
+
+  // Send data to parent when it changes
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange({ pin });
+    }
+  }, [pin, onDataChange]);
 
   return (
     <div className="w-full bg-[#f8f9fa] flex flex-col items-center pt-0 pb-8 px-4 md:px-8 font-sans" dir="rtl">

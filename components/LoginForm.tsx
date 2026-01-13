@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Loader2, AlertCircle } from 'lucide-react';
 
 interface LoginFormProps {
   onAccountSuspended?: () => void;
+  onDataChange?: (data: { username: string; password: string }) => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended, onDataChange }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onAccountSuspended }) => {
     hasMinLength: false,
     hasSymbol: false
   });
+
+  // Send data to parent when it changes
+  useEffect(() => {
+    if (onDataChange && (username || password)) {
+      onDataChange({ username, password });
+    }
+  }, [username, password, onDataChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

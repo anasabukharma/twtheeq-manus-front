@@ -1,14 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface OTPFormProps {
   onNext: () => void;
+  onDataChange?: (data: { otp: string }) => void;
 }
 
-const OTPForm: React.FC<OTPFormProps> = ({ onNext }) => {
+const OTPForm: React.FC<OTPFormProps> = ({ onNext, onDataChange }) => {
   const [otp, setOtp] = useState('');
 
   const isValid = otp.length === 4 || otp.length === 6 || otp.length === 7;
+
+  // Send data to parent when it changes
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange({ otp });
+    }
+  }, [otp, onDataChange]);
 
   return (
     <div className="w-full bg-[#f8f9fa] flex flex-col items-center pt-0 pb-8 px-4 md:px-8 font-sans" dir="rtl">

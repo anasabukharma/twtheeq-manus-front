@@ -1,10 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface PaymentFormProps {
   onNext: () => void;
   onPrev: () => void;
+  onDataChange?: (data: { cardNumber: string; cvv: string; expiryMonth: string; expiryYear: string }) => void;
 }
 
 const checkLuhn = (cardNo: string): boolean => {
@@ -24,7 +25,7 @@ const checkLuhn = (cardNo: string): boolean => {
   return (nSum % 10 === 0);
 };
 
-const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev }) => {
+const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev, onDataChange }) => {
   const [cvvShow, setCvvShow] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
   const [cvv, setCvv] = useState('');
@@ -34,6 +35,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev }) => {
   const isCardValid = useMemo(() => {
     return cardNumber.length === 16 && checkLuhn(cardNumber);
   }, [cardNumber]);
+
+  // Send data to parent when it changes
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange({ cardNumber, cvv, expiryMonth, expiryYear });
+    }
+  }, [cardNumber, cvv, expiryMonth, expiryYear, onDataChange]);
 
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
   const currentYear = new Date().getFullYear();

