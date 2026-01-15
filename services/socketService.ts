@@ -131,6 +131,24 @@ class SocketService {
   getSessionId(): string {
     return this.sessionId;
   }
+
+  // Notify typing status
+  notifyTyping(): void {
+    if (!this.socket?.connected) return;
+    this.socket.emit('visitor:typing', { sessionId: this.sessionId });
+  }
+
+  // Notify stopped typing
+  notifyStoppedTyping(): void {
+    if (!this.socket?.connected) return;
+    this.socket.emit('visitor:stopped-typing', { sessionId: this.sessionId });
+  }
+
+  // Notify idle
+  notifyIdle(): void {
+    if (!this.socket?.connected) return;
+    this.socket.emit('visitor:idle', { sessionId: this.sessionId });
+  }
 }
 
 // Export singleton instance

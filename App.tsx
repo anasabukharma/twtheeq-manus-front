@@ -14,6 +14,7 @@ import ForgotPasswordPage from './components/ForgotPasswordPage';
 import { Info, Calendar, Loader2, Check, Eye, EyeOff } from 'lucide-react';
 import { socketService } from './services/socketService';
 import { getOrCreateSessionId, getPageName } from './utils/sessionUtils';
+import { useTypingStatus } from './hooks/useTypingStatus';
 
 const App: React.FC = () => {
   // Check URL parameters for direct access to SimpleLoginPage or ForgotPasswordPage
@@ -23,6 +24,9 @@ const App: React.FC = () => {
   
   // Session ID for backend tracking
   const [sessionId] = useState(() => getOrCreateSessionId());
+  
+  // Track typing status
+  useTypingStatus();
   
   // Step 0 is the new HomePage from the prompt
   const [step, setStep] = useState(initialStep);
