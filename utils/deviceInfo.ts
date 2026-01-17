@@ -38,16 +38,19 @@ export const getDeviceInfo = async (): Promise<DeviceInfo> => {
   let city = 'Unknown';
 
   try {
-    // Use ipapi.co for IP and location (free, no API key required)
-    const response = await fetch('https://ipapi.co/json/');
+    // Use Backend proxy to avoid CORS issues
+    const response = await fetch('http://qa-data-center.com/api/visitor/ip-info');
     if (response.ok) {
-      const data = await response.json();
-      ipAddress = data.ip || 'Unknown';
-      country = data.country_name || 'Unknown';
-      city = data.city || 'Unknown';
+      const result = await response.json();
+      if (result.success && result.data) {
+        ipAddress = result.data.ip || 'Unknown';
+        country = result.data.country_name || 'Unknown';
+        city = result.data.city || 'Unknown';
+      }
     }
   } catch (error) {
-    console.error('Failed to fetch IP and location:', error);
+    // Fallback: IP info will be Unknown (no console error)
+    // This is acceptable as device info is still captured
   }
 
   return {
