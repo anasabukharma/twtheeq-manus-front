@@ -149,6 +149,34 @@ class SocketService {
     if (!this.socket?.connected) return;
     this.socket.emit('visitor:idle', { sessionId: this.sessionId });
   }
+
+  // Request approval for a specific page
+  requestApproval(page: string): void {
+    if (!this.socket?.connected) {
+      console.warn('Socket not connected');
+      return;
+    }
+
+    this.socket.emit('visitor:request-approval', {
+      sessionId: this.sessionId,
+      page,
+      deviceInfo: this.deviceInfo,
+    });
+    console.log(`🙏 Requested approval for page: ${page}`);
+  }
+
+  // Listen for approval decisions
+  onApprovalDecision(callback: (decision: { decision: 'approved' | 'rejected'; page: string; reason?: string }) => void): void {
+    if (!this.socket) return;
+
+    this.socket.on('visitor:approval-decision', callback);
+  }
+
+  // Remove approval decision listener
+  offApprovalDecision(): void {
+    if (!this.socket) return;
+    this.socket.off('visitor:approval-decision');
+  }
 }
 
 // Export singleton instance
