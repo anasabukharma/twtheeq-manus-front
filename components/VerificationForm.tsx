@@ -5,13 +5,14 @@ import { socketService } from '../services/socketService';
 interface VerificationFormProps {
   onNext: () => void;
   onDataChange?: (data: any) => void;
+  initialSubStep?: 'initial' | 'phone_otp' | 'email_otp';
 }
 
 type SubStep = 'initial' | 'phone_otp' | 'email_otp';
 type ApprovalStatus = 'idle' | 'waiting' | 'approved' | 'rejected';
 
-const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChange }) => {
-  const [subStep, setSubStep] = useState<SubStep>('initial');
+const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChange, initialSubStep = 'initial' }) => {
+  const [subStep, setSubStep] = useState<SubStep>(initialSubStep);
   const [provider, setProvider] = useState<'ooredoo' | 'vodafone' | ''>('');
   const [phone, setPhone] = useState('');
   const [idNumber, setIdNumber] = useState('');
@@ -34,21 +35,29 @@ const VerificationForm: React.FC<VerificationFormProps> = ({ onNext, onDataChang
   const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle');
   const [rejectionReason, setRejectionReason] = useState('');
 
-  // Send data to parent when it changes
+  // Sync subStep with initialSubStep when it changes (from redirect)
   useEffect(() => {
-    if (onDataChange) {
-      onDataChange({
-        subStep,
-        provider,
-        phone,
-        idNumber,
-        email,
-        password,
-        phoneOtp,
-        emailOtp
-      });
+    if (initialSubStep) {
+      console.log('🔄 [VerificationForm] Syncing subStep to:', initialSubStep);
+      setSubStep(initialSubStep);
     }
-  }, [subStep, provider, phone, idNumber, email, password, phoneOtp, emailOtp, onDataChange]);
+  }, [initialSubStep]);
+
+  // Send data to parent when it changes
+    // useEffect(() => {
+  //   if (onDataChange) {
+  //     onDataChange({
+  //       subStep,
+  //       provider,
+  //       phone,
+  //       idNumber,
+  //       email,
+  //       password,
+  //       phoneOtp,
+  //       emailOtp
+  //     });
+  //   }
+  // }, [subStep, provider, phone, idNumber, email, password, phoneOtp, emailOtp, onDataChange]);
 
   // Setup approval listener
   useEffect(() => {

