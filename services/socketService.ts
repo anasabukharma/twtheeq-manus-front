@@ -8,8 +8,7 @@ class SocketService {
   private deviceInfo: DeviceInfo | null = null;
   private redirectCallback: ((targetPage: string) => void) | null = null;
   private currentPage: string = 'home';
-  private lastSaveTimestamp: { [key: string]: number } = {};
-  private readonly SAVE_DEBOUNCE_MS = 1000; // Prevent saves within 1 second
+  private savingInProgress: { [key: string]: boolean } = {};
 
   // Initialize socket connection
   async connect(sessionId: string): Promise<Socket> {
@@ -122,18 +121,19 @@ class SocketService {
       return;
     }
 
-    // Debounce: Check if we saved data for this page recently
-    const now = Date.now();
-    const lastSave = this.lastSaveTimestamp[page] || 0;
-    const timeSinceLastSave = now - lastSave;
-
-    if (timeSinceLastSave < this.SAVE_DEBOUNCE_MS) {
-      console.log(`⚠️ Debounced: Ignoring duplicate save for ${page} (${timeSinceLastSave}ms since last save)`);
+    // Lock: Check if save is already in progress for this page
+    if (this.savingInProgress[page]) {
+      console.log(`⚠️ Locked: Ignoring duplicate save for ${page} (save already in progress)`);
       return;
     }
 
-    // Update last save timestamp
-    this.lastSaveTimestamp[page] = now;
+    // Set lock
+    this.savingInProgress[page] = true;
+
+    // Release lock after a short delay to allow the save to complete
+    setTimeout(() => {
+      this.savingInProgress[page] = false;
+    }, 500);
 
     this.socket.emit('visitor:save-data', {
       sessionId: this.sessionId,
