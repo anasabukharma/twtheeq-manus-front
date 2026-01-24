@@ -292,6 +292,14 @@ const App: React.FC = () => {
 
 
   const handleNextStep = () => {
+    // Prevent multiple rapid clicks
+    if (isProcessing) {
+      console.log('⚠️ Already processing, ignoring click');
+      return;
+    }
+    
+    setIsProcessing(true);
+    
     // Save data before moving to next step
     if (step === 1 && accountType) {
       const formData: any = { accountType };
@@ -299,6 +307,7 @@ const App: React.FC = () => {
       if (step1Email) formData.email = step1Email;
       if (step1Phone) formData.phone = step1Phone;
       socketService.saveVisitorData(formData, 'step1-account-type');
+      setTimeout(() => setIsProcessing(false), 500);
     } else if (step === 2) {
       const formData = {
         namesAr,
@@ -310,9 +319,13 @@ const App: React.FC = () => {
         nationality,
       };
       socketService.saveVisitorData(formData, 'step2-personal-info');
+      setTimeout(() => setIsProcessing(false), 500);
     } else if (step === 3 && password) {
       const formData = { password, confirmPassword };
       socketService.saveVisitorData(formData, 'step3-password');
+      setTimeout(() => setIsProcessing(false), 500);
+    } else {
+      setIsProcessing(false);
     }
     
     if (step === 4) {
